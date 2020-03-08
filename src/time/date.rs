@@ -206,13 +206,13 @@ pub fn find_easter(year: Year) -> Date {
         let e = b % 4;
         let f = (b + 4) / 25;
         let g = (b - f + 1) / 3;
-        let h = (19*a + b - d - g + 15) % 30;
+        let h = (19 * a + b - d - g + 15) % 30;
         let i = c / 4;
         let k = c % 4;
-        let l = (32 + 2*e + 2*i - h - k) % 7;
-        let m = (a + 11*h + 22*l) / 451;
-        let n = (h + l - 7*m + 114) / 31;
-        let p = (h + l - 7*m + 114) % 31;
+        let l = (32 + 2 * e + 2 * i - h - k) % 7;
+        let m = (a + 11 * h + 22 * l) / 451;
+        let n = (h + l - 7 * m + 114) / 31;
+        let p = (h + l - 7 * m + 114) % 31;
         Date {
             cal: Calendar::Gregorian,
             year,
@@ -224,8 +224,8 @@ pub fn find_easter(year: Year) -> Date {
         let a = year.0 % 4;
         let b = year.0 % 7;
         let c = year.0 % 19;
-        let d = (19*c + 15) % 30;
-        let e = (2*a + 4*b - d + 34) % 7;
+        let d = (19 * c + 15) % 30;
+        let e = (2 * a + 4 * b - d + 34) % 7;
         let f = (d + e + 114) / 31;
         let g = (d + e + 114) % 31;
         Date {
@@ -459,18 +459,135 @@ mod tests {
 
     #[test]
     fn easter() {
-        assert_eq!(find_easter(Year(1818)), Date { cal: Calendar::Gregorian, year: Year(1818), month: Month::March, day: DayOfMonth(22), fraction: 0.0});
-        assert_eq!(find_easter(Year(2285)), Date { cal: Calendar::Gregorian, year: Year(2285), month: Month::March, day: DayOfMonth(22), fraction: 0.0});
-        assert_eq!(find_easter(Year(1886)), Date { cal: Calendar::Gregorian, year: Year(1886), month: Month::April, day: DayOfMonth(25), fraction: 0.0});
-        assert_eq!(find_easter(Year(2038)), Date { cal: Calendar::Gregorian, year: Year(2038), month: Month::April, day: DayOfMonth(25), fraction: 0.0});
-        assert_eq!(find_easter(Year(1991)), Date { cal: Calendar::Gregorian, year: Year(1991), month: Month::March, day: DayOfMonth(31), fraction: 0.0});
-        assert_eq!(find_easter(Year(1992)), Date { cal: Calendar::Gregorian, year: Year(1992), month: Month::April, day: DayOfMonth(19), fraction: 0.0});
-        assert_eq!(find_easter(Year(1993)), Date { cal: Calendar::Gregorian, year: Year(1993), month: Month::April, day: DayOfMonth(11), fraction: 0.0});
-        assert_eq!(find_easter(Year(1954)), Date { cal: Calendar::Gregorian, year: Year(1954), month: Month::April, day: DayOfMonth(18), fraction: 0.0});
-        assert_eq!(find_easter(Year(2000)), Date { cal: Calendar::Gregorian, year: Year(2000), month: Month::April, day: DayOfMonth(23), fraction: 0.0});
-        assert_eq!(find_easter(Year(1818)), Date { cal: Calendar::Gregorian, year: Year(1818), month: Month::March, day: DayOfMonth(22), fraction: 0.0});
-        assert_eq!(find_easter(Year(179)), Date { cal: Calendar::Julian, year: Year(179), month: Month::April, day: DayOfMonth(12), fraction: 0.0});
-        assert_eq!(find_easter(Year(711)), Date { cal: Calendar::Julian, year: Year(711), month: Month::April, day: DayOfMonth(12), fraction: 0.0});
-        assert_eq!(find_easter(Year(1243)), Date { cal: Calendar::Julian, year: Year(1243), month: Month::April, day: DayOfMonth(12), fraction: 0.0});
+        assert_eq!(
+            find_easter(Year(1818)),
+            Date {
+                cal: Calendar::Gregorian,
+                year: Year(1818),
+                month: Month::March,
+                day: DayOfMonth(22),
+                fraction: 0.0
+            }
+        );
+        assert_eq!(
+            find_easter(Year(2285)),
+            Date {
+                cal: Calendar::Gregorian,
+                year: Year(2285),
+                month: Month::March,
+                day: DayOfMonth(22),
+                fraction: 0.0
+            }
+        );
+        assert_eq!(
+            find_easter(Year(1886)),
+            Date {
+                cal: Calendar::Gregorian,
+                year: Year(1886),
+                month: Month::April,
+                day: DayOfMonth(25),
+                fraction: 0.0
+            }
+        );
+        assert_eq!(
+            find_easter(Year(2038)),
+            Date {
+                cal: Calendar::Gregorian,
+                year: Year(2038),
+                month: Month::April,
+                day: DayOfMonth(25),
+                fraction: 0.0
+            }
+        );
+        assert_eq!(
+            find_easter(Year(1991)),
+            Date {
+                cal: Calendar::Gregorian,
+                year: Year(1991),
+                month: Month::March,
+                day: DayOfMonth(31),
+                fraction: 0.0
+            }
+        );
+        assert_eq!(
+            find_easter(Year(1992)),
+            Date {
+                cal: Calendar::Gregorian,
+                year: Year(1992),
+                month: Month::April,
+                day: DayOfMonth(19),
+                fraction: 0.0
+            }
+        );
+        assert_eq!(
+            find_easter(Year(1993)),
+            Date {
+                cal: Calendar::Gregorian,
+                year: Year(1993),
+                month: Month::April,
+                day: DayOfMonth(11),
+                fraction: 0.0
+            }
+        );
+        assert_eq!(
+            find_easter(Year(1954)),
+            Date {
+                cal: Calendar::Gregorian,
+                year: Year(1954),
+                month: Month::April,
+                day: DayOfMonth(18),
+                fraction: 0.0
+            }
+        );
+        assert_eq!(
+            find_easter(Year(2000)),
+            Date {
+                cal: Calendar::Gregorian,
+                year: Year(2000),
+                month: Month::April,
+                day: DayOfMonth(23),
+                fraction: 0.0
+            }
+        );
+        assert_eq!(
+            find_easter(Year(1818)),
+            Date {
+                cal: Calendar::Gregorian,
+                year: Year(1818),
+                month: Month::March,
+                day: DayOfMonth(22),
+                fraction: 0.0
+            }
+        );
+        assert_eq!(
+            find_easter(Year(179)),
+            Date {
+                cal: Calendar::Julian,
+                year: Year(179),
+                month: Month::April,
+                day: DayOfMonth(12),
+                fraction: 0.0
+            }
+        );
+        assert_eq!(
+            find_easter(Year(711)),
+            Date {
+                cal: Calendar::Julian,
+                year: Year(711),
+                month: Month::April,
+                day: DayOfMonth(12),
+                fraction: 0.0
+            }
+        );
+        assert_eq!(
+            find_easter(Year(1243)),
+            Date {
+                cal: Calendar::Julian,
+                year: Year(1243),
+                month: Month::April,
+                day: DayOfMonth(12),
+                fraction: 0.0
+            }
+        );
     }
 }
