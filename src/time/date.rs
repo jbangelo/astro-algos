@@ -1,5 +1,14 @@
 //! Conversions to and from calendar dates
-use super::JD;
+use crate::time::JD;
+
+#[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
+pub enum Calendar {
+    Julian,
+    Gregorian,
+}
+
+#[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
+pub struct Year(i32);
 
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub enum Month {
@@ -18,6 +27,9 @@ pub enum Month {
 }
 
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
+pub struct DayOfMonth(u8);
+
+#[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub enum DayOfWeek {
     Sunday = 0,
     Monday = 1,
@@ -29,25 +41,19 @@ pub enum DayOfWeek {
 }
 
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
-pub enum Calendar {
-    Julian,
-    Gregorian,
-}
-
-#[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub struct Date {
     cal: Calendar,
-    year: i32,
+    year: Year,
     month: Month,
-    day: u8,
+    day: DayOfMonth,
     fraction: f64,
 }
 
 impl Date {
     pub fn to_jd(&self) -> super::JD {
         let (y, m) = match self.month {
-            Month::January | Month::February => (self.year as f64 - 1.0, self.month as i32 + 12),
-            _ => (self.year as f64, self.month as i32),
+            Month::January | Month::February => (self.year.0 as f64 - 1.0, self.month as i32 + 12),
+            _ => (self.year.0 as f64, self.month as i32),
         };
 
         let a = (y as f64 / 100.0).floor();
@@ -59,7 +65,7 @@ impl Date {
         JD::from(
             (365.25f64 * (y + 4716.0)).floor()
                 + (30.6001f64 * (m as f64 + 1.0)).floor()
-                + (self.day as f64)
+                + (self.day.0 as f64)
                 + self.fraction
                 + b
                 - 1524.5,
@@ -101,9 +107,9 @@ impl Date {
             } else {
                 Calendar::Julian
             },
-            year: year as i32,
+            year: Year(year as i32),
             month: Month::from(month),
-            day: day as u8,
+            day: DayOfMonth(day as u8),
             fraction,
         }
     }
@@ -116,15 +122,15 @@ impl Date {
 
     pub fn get_day_of_year(&self) -> u16 {
         let leap_year = if let Calendar::Julian = self.cal {
-            (self.year % 4) == 0
+            (self.year.0 % 4) == 0
         } else {
-            ((self.year % 4) == 0) && !((self.year % 400) == 0)
+            ((self.year.0 % 4) == 0) && !((self.year.0 % 400) == 0)
         };
 
         let k = if leap_year { 1 } else { 2 };
 
         let m = self.month as u16;
-        let d = self.day as u16;
+        let d = self.day.0 as u16;
 
         (275 * m / 9) - k * ((m + 9) / 12) + d - 30
     }
@@ -191,11 +197,11 @@ impl From<JD> for Date {
 ///
 /// #Note
 /// The returned date has the fractional day set to `0.0`
-pub fn find_easter(year: i32) -> Date {
-    if year >= 1583 {
-        let a = year % 19;
-        let b = year / 100;
-        let c = year % 100;
+pub fn find_easter(year: Year) -> Date {
+    if year >= Year(1583) {
+        let a = year.0 % 19;
+        let b = year.0 / 100;
+        let c = year.0 % 100;
         let d = b / 4;
         let e = b % 4;
         let f = (b + 4) / 25;
@@ -211,13 +217,13 @@ pub fn find_easter(year: i32) -> Date {
             cal: Calendar::Gregorian,
             year,
             month: n.into(),
-            day: (p + 1) as u8,
+            day: DayOfMonth((p + 1) as u8),
             fraction: 0.0,
         }
     } else {
-        let a = year % 4;
-        let b = year % 7;
-        let c = year % 19;
+        let a = year.0 % 4;
+        let b = year.0 % 7;
+        let c = year.0 % 19;
         let d = (19*c + 15) % 30;
         let e = (2*a + 4*b - d + 34) % 7;
         let f = (d + e + 114) / 31;
@@ -226,7 +232,7 @@ pub fn find_easter(year: i32) -> Date {
             cal: Calendar::Julian,
             year,
             month: f.into(),
-            day: (g + 1) as u8,
+            day: DayOfMonth((g + 1) as u8),
             fraction: 0.0,
         }
     }
@@ -248,9 +254,9 @@ mod tests {
         assert_eq!(
             Date {
                 cal: Calendar::Gregorian,
-                year: 1957,
+                year: Year(1957),
                 month: Month::October,
-                day: 4,
+                day: DayOfMonth(4),
                 fraction: 0.81,
             }
             .to_jd(),
@@ -261,9 +267,9 @@ mod tests {
         assert_eq!(
             Date {
                 cal: Calendar::Julian,
-                year: 333,
+                year: Year(333),
                 month: Month::January,
-                day: 27,
+                day: DayOfMonth(27),
                 fraction: 0.5,
             }
             .to_jd(),
@@ -274,9 +280,9 @@ mod tests {
         assert_eq!(
             Date {
                 cal: Calendar::Gregorian,
-                year: 2000,
+                year: Year(2000),
                 month: Month::January,
-                day: 1,
+                day: DayOfMonth(1),
                 fraction: 0.5,
             }
             .to_jd(),
@@ -287,9 +293,9 @@ mod tests {
         assert_eq!(
             Date {
                 cal: Calendar::Gregorian,
-                year: 1600,
+                year: Year(1600),
                 month: Month::December,
-                day: 31,
+                day: DayOfMonth(31),
                 fraction: 0.0,
             }
             .to_jd(),
@@ -300,9 +306,9 @@ mod tests {
         assert_eq!(
             Date {
                 cal: Calendar::Julian,
-                year: -1001,
+                year: Year(-1001),
                 month: Month::August,
-                day: 17,
+                day: DayOfMonth(17),
                 fraction: 0.9,
             }
             .to_jd(),
@@ -313,9 +319,9 @@ mod tests {
         assert_eq!(
             Date {
                 cal: Calendar::Julian,
-                year: -4712,
+                year: Year(-4712),
                 month: Month::January,
-                day: 1,
+                day: DayOfMonth(1),
                 fraction: 0.5,
             }
             .to_jd(),
@@ -328,25 +334,25 @@ mod tests {
         // Example 7.c, page 64
         let d1 = Date::from_jd(JD::from(2436_116.31));
         assert_eq!(d1.cal, Calendar::Gregorian);
-        assert_eq!(d1.year, 1957);
+        assert_eq!(d1.year, Year(1957));
         assert_eq!(d1.month, Month::October);
-        assert_eq!(d1.day, 4);
+        assert_eq!(d1.day, DayOfMonth(4));
         assert!(fraction_eq(d1.fraction, 0.81));
 
         // Exercise, page 64
         let d1 = Date::from_jd(JD::from(1842_713.0));
         assert_eq!(d1.cal, Calendar::Julian);
-        assert_eq!(d1.year, 333);
+        assert_eq!(d1.year, Year(333));
         assert_eq!(d1.month, Month::January);
-        assert_eq!(d1.day, 27);
+        assert_eq!(d1.day, DayOfMonth(27));
         assert!(fraction_eq(d1.fraction, 0.5));
 
         // Exercise, page 64
         let d1 = Date::from_jd(JD::from(1507_900.13));
         assert_eq!(d1.cal, Calendar::Julian);
-        assert_eq!(d1.year, -584);
+        assert_eq!(d1.year, Year(-584));
         assert_eq!(d1.month, Month::May);
-        assert_eq!(d1.day, 28);
+        assert_eq!(d1.day, DayOfMonth(28));
         assert!(fraction_eq(d1.fraction, 0.63));
     }
 
@@ -356,9 +362,9 @@ mod tests {
         assert_eq!(
             Date {
                 cal: Calendar::Gregorian,
-                year: 1954,
+                year: Year(1954),
                 month: Month::June,
-                day: 30,
+                day: DayOfMonth(30),
                 fraction: 0.0
             }
             .get_day_of_week(),
@@ -368,9 +374,9 @@ mod tests {
         assert_eq!(
             Date {
                 cal: Calendar::Gregorian,
-                year: 2019,
+                year: Year(2019),
                 month: Month::July,
-                day: 13,
+                day: DayOfMonth(13),
                 fraction: 0.0
             }
             .get_day_of_week(),
@@ -379,9 +385,9 @@ mod tests {
         assert_eq!(
             Date {
                 cal: Calendar::Gregorian,
-                year: 2019,
+                year: Year(2019),
                 month: Month::July,
-                day: 13,
+                day: DayOfMonth(13),
                 fraction: 0.4999999
             }
             .get_day_of_week(),
@@ -390,9 +396,9 @@ mod tests {
         assert_eq!(
             Date {
                 cal: Calendar::Gregorian,
-                year: 2019,
+                year: Year(2019),
                 month: Month::July,
-                day: 13,
+                day: DayOfMonth(13),
                 fraction: 0.5
             }
             .get_day_of_week(),
@@ -401,9 +407,9 @@ mod tests {
         assert_eq!(
             Date {
                 cal: Calendar::Gregorian,
-                year: 2019,
+                year: Year(2019),
                 month: Month::July,
-                day: 13,
+                day: DayOfMonth(13),
                 fraction: 0.9
             }
             .get_day_of_week(),
@@ -412,9 +418,9 @@ mod tests {
         assert_eq!(
             Date {
                 cal: Calendar::Gregorian,
-                year: 2019,
+                year: Year(2019),
                 month: Month::July,
-                day: 13,
+                day: DayOfMonth(13),
                 fraction: 0.99999999
             }
             .get_day_of_week(),
@@ -428,9 +434,9 @@ mod tests {
         assert_eq!(
             Date {
                 cal: Calendar::Gregorian,
-                year: 1978,
+                year: Year(1978),
                 month: Month::November,
-                day: 14,
+                day: DayOfMonth(14),
                 fraction: 0.0
             }
             .get_day_of_year(),
@@ -441,9 +447,9 @@ mod tests {
         assert_eq!(
             Date {
                 cal: Calendar::Gregorian,
-                year: 1988,
+                year: Year(1988),
                 month: Month::April,
-                day: 22,
+                day: DayOfMonth(22),
                 fraction: 0.0
             }
             .get_day_of_year(),
@@ -453,18 +459,18 @@ mod tests {
 
     #[test]
     fn easter() {
-        assert_eq!(find_easter(1818), Date { cal: Calendar::Gregorian, year: 1818, month: Month::March, day: 22, fraction: 0.0});
-        assert_eq!(find_easter(2285), Date { cal: Calendar::Gregorian, year: 2285, month: Month::March, day: 22, fraction: 0.0});
-        assert_eq!(find_easter(1886), Date { cal: Calendar::Gregorian, year: 1886, month: Month::April, day: 25, fraction: 0.0});
-        assert_eq!(find_easter(2038), Date { cal: Calendar::Gregorian, year: 2038, month: Month::April, day: 25, fraction: 0.0});
-        assert_eq!(find_easter(1991), Date { cal: Calendar::Gregorian, year: 1991, month: Month::March, day: 31, fraction: 0.0});
-        assert_eq!(find_easter(1992), Date { cal: Calendar::Gregorian, year: 1992, month: Month::April, day: 19, fraction: 0.0});
-        assert_eq!(find_easter(1993), Date { cal: Calendar::Gregorian, year: 1993, month: Month::April, day: 11, fraction: 0.0});
-        assert_eq!(find_easter(1954), Date { cal: Calendar::Gregorian, year: 1954, month: Month::April, day: 18, fraction: 0.0});
-        assert_eq!(find_easter(2000), Date { cal: Calendar::Gregorian, year: 2000, month: Month::April, day: 23, fraction: 0.0});
-        assert_eq!(find_easter(1818), Date { cal: Calendar::Gregorian, year: 1818, month: Month::March, day: 22, fraction: 0.0});
-        assert_eq!(find_easter(179), Date { cal: Calendar::Julian, year: 179, month: Month::April, day: 12, fraction: 0.0});
-        assert_eq!(find_easter(711), Date { cal: Calendar::Julian, year: 711, month: Month::April, day: 12, fraction: 0.0});
-        assert_eq!(find_easter(1243), Date { cal: Calendar::Julian, year: 1243, month: Month::April, day: 12, fraction: 0.0});
+        assert_eq!(find_easter(Year(1818)), Date { cal: Calendar::Gregorian, year: Year(1818), month: Month::March, day: DayOfMonth(22), fraction: 0.0});
+        assert_eq!(find_easter(Year(2285)), Date { cal: Calendar::Gregorian, year: Year(2285), month: Month::March, day: DayOfMonth(22), fraction: 0.0});
+        assert_eq!(find_easter(Year(1886)), Date { cal: Calendar::Gregorian, year: Year(1886), month: Month::April, day: DayOfMonth(25), fraction: 0.0});
+        assert_eq!(find_easter(Year(2038)), Date { cal: Calendar::Gregorian, year: Year(2038), month: Month::April, day: DayOfMonth(25), fraction: 0.0});
+        assert_eq!(find_easter(Year(1991)), Date { cal: Calendar::Gregorian, year: Year(1991), month: Month::March, day: DayOfMonth(31), fraction: 0.0});
+        assert_eq!(find_easter(Year(1992)), Date { cal: Calendar::Gregorian, year: Year(1992), month: Month::April, day: DayOfMonth(19), fraction: 0.0});
+        assert_eq!(find_easter(Year(1993)), Date { cal: Calendar::Gregorian, year: Year(1993), month: Month::April, day: DayOfMonth(11), fraction: 0.0});
+        assert_eq!(find_easter(Year(1954)), Date { cal: Calendar::Gregorian, year: Year(1954), month: Month::April, day: DayOfMonth(18), fraction: 0.0});
+        assert_eq!(find_easter(Year(2000)), Date { cal: Calendar::Gregorian, year: Year(2000), month: Month::April, day: DayOfMonth(23), fraction: 0.0});
+        assert_eq!(find_easter(Year(1818)), Date { cal: Calendar::Gregorian, year: Year(1818), month: Month::March, day: DayOfMonth(22), fraction: 0.0});
+        assert_eq!(find_easter(Year(179)), Date { cal: Calendar::Julian, year: Year(179), month: Month::April, day: DayOfMonth(12), fraction: 0.0});
+        assert_eq!(find_easter(Year(711)), Date { cal: Calendar::Julian, year: Year(711), month: Month::April, day: DayOfMonth(12), fraction: 0.0});
+        assert_eq!(find_easter(Year(1243)), Date { cal: Calendar::Julian, year: Year(1243), month: Month::April, day: DayOfMonth(12), fraction: 0.0});
     }
 }
