@@ -1,3 +1,4 @@
+//! This module contains algorithms dealing with planets in our solar system
 mod earth;
 mod jupiter;
 mod mars;
@@ -11,6 +12,7 @@ use crate::angle::Angle;
 use crate::coords::HeliocentricSpherical;
 use crate::time::JD;
 
+/// Representation of the planets in our solar system.
 pub enum Planet {
     Mercury,
     Venus,
@@ -23,6 +25,13 @@ pub enum Planet {
 }
 
 impl Planet {
+    /// Computes the position of the planet at a given moment in time, for the J2000.0 equinox
+    ///
+    /// This function uses the VSOP-87B model of the planetary motions. As such it should be
+    /// reasonably accurate for times within a couple of millenia of the year 2000. Beyond that the
+    /// accuracy for Jupiter and Saturn start to degrade. Beyond +/- 4000 years from the year 2000
+    /// the accuracy of the positions for the inner four planets degrade. Finally past +/- 6000 years
+    /// from the year 2000 the accuracy of Uranus and Neptune's positions start to degrade.
     pub fn get_location(&self, t: &JD) -> HeliocentricSpherical {
         let tau = (t.to_f64() - 2451_545.0) / 365_250.0;
         let (l_terms, b_terms, r_terms) = match self {

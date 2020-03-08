@@ -1,3 +1,4 @@
+//! Conversions to and from calendar dates
 use super::JD;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
