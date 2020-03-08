@@ -7,84 +7,74 @@
 /// radians but that isn't directly accessible. Instead, you should use the provided conversion
 /// functions.
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
-pub struct Angle {
-    value: f64,
-}
+pub struct Angle(f64);
 
 impl Angle {
     /// Converts a bare `f64` into an `Angle`, treating the `f64` as if it were in units of degrees.
     pub fn from_degrees(d: f64) -> Angle {
-        Angle {
-            value: d.to_radians(),
-        }
+        Angle(d.to_radians())
     }
 
     /// Converts a bare `f64` into an `Angle`, treating the `f64` as if it were in units of radians.
     pub fn from_radians(r: f64) -> Angle {
-        Angle { value: r }
+        Angle(r)
     }
 
     /// Converts an angle represented as degrees, minutes, and second into an `Angle`.
     pub fn from_dms(degrees: u8, mins: u8, secs: f64) -> Angle {
         let deg = (degrees as f64) + (mins as f64) / 60.0 + (secs / 3600.0);
-        Angle {
-            value: (deg % 360.0).to_radians(),
-        }
+        Angle((deg % 360.0).to_radians())
     }
 
     /// Converts an angle represented as hours minutes, ans second into an `Angle`.
     pub fn from_hms(hours: u8, mins: u8, secs: f64) -> Angle {
         let deg = ((hours as f64) + (mins as f64 / 60.0) + (secs / 3600.0)) * (360.0 / 24.0);
-        Angle {
-            value: (deg % 360.0).to_radians(),
-        }
+        Angle((deg % 360.0).to_radians())
     }
 
     /// Converts an `Angle` into a bare `f64` that is in units of radians
-    pub fn to_radians(&self) -> f64 {
-        self.value
+    pub fn as_radians(&self) -> f64 {
+        self.0
     }
 
     /// Converts an `Angle` into a bare `f64` that is in units of degrees
-    pub fn to_degrees(&self) -> f64 {
-        self.value.to_degrees()
+    pub fn as_degrees(&self) -> f64 {
+        self.0.to_degrees()
     }
 
     /// Gets the sine of the angle.
     pub fn sin(&self) -> f64 {
-        self.value.sin()
+        self.0.sin()
     }
 
     /// Gets the cosine of the angle.
     pub fn cos(&self) -> f64 {
-        self.value.cos()
+        self.0.cos()
     }
 
     /// Gets the tangent of the angle.
     pub fn tan(&self) -> f64 {
-        self.value.tan()
+        self.0.tan()
     }
 
     /// Gets the arcsine angle of a value
     pub fn asin(item: f64) -> Angle {
-        Angle { value: item.asin() }
+        Angle(item.asin())
     }
 
     /// Gets the arccosine angle of a value
     pub fn acos(item: f64) -> Angle {
-        Angle { value: item.acos() }
+        Angle(item.acos())
     }
 
     /// Gets the arctangent angle of a value
     pub fn atan(item: f64) -> Angle {
-        Angle { value: item.atan() }
+        Angle(item.atan())
     }
 
     /// Gets the arctangent angle of a value, using the typical atan2 function
     pub fn atan2(num: f64, denom: f64) -> Angle {
-        Angle {
-            value: num.atan2(denom),
-        }
+        Angle(num.atan2(denom))
     }
 
     /// Wraps the value of an angle so that is is between the two given limits
@@ -119,9 +109,7 @@ impl std::ops::Add for Angle {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self {
-        Self {
-            value: self.value + rhs.value,
-        }
+        Self(self.0 + rhs.0)
     }
 }
 
@@ -129,15 +117,13 @@ impl std::ops::Add for &Angle {
     type Output = Angle;
 
     fn add(self, rhs: Self) -> Angle {
-        Angle {
-            value: self.value + rhs.value,
-        }
+        Angle(self.0 + rhs.0)
     }
 }
 
 impl std::ops::AddAssign for Angle {
     fn add_assign(&mut self, rhs: Self) {
-        self.value += rhs.value;
+        self.0 += rhs.0;
     }
 }
 
@@ -145,9 +131,7 @@ impl std::ops::Sub for Angle {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self {
-        Self {
-            value: self.value - rhs.value,
-        }
+        Self(self.0 - rhs.0)
     }
 }
 
@@ -155,15 +139,13 @@ impl std::ops::Sub for &Angle {
     type Output = Angle;
 
     fn sub(self, rhs: Self) -> Angle {
-        Angle {
-            value: self.value - rhs.value,
-        }
+        Angle(self.0 - rhs.0)
     }
 }
 
 impl std::ops::SubAssign for Angle {
     fn sub_assign(&mut self, rhs: Self) {
-        self.value -= rhs.value;
+        self.0 -= rhs.0;
     }
 }
 
@@ -173,19 +155,9 @@ mod tests {
 
     #[test]
     fn from_degrees() {
-        assert_eq!(Angle::from_degrees(0.0), Angle { value: 0.0 });
-        assert_eq!(
-            Angle::from_degrees(1.0),
-            Angle {
-                value: 0.01745329251994329577
-            }
-        );
-        assert_eq!(
-            Angle::from_degrees(25.4345),
-            Angle {
-                value: 0.44391576859849775626
-            }
-        );
+        assert_eq!(Angle::from_degrees(0.0), Angle(0.0));
+        assert_eq!(Angle::from_degrees(1.0), Angle(0.01745329251994329577));
+        assert_eq!(Angle::from_degrees(25.4345), Angle(0.44391576859849775626));
     }
 
     #[test]
@@ -227,8 +199,8 @@ mod tests {
         assert_eq!(Angle::asin(1.0), Angle::from_degrees(90.0));
         assert_eq!(Angle::asin(-1.0), Angle::from_degrees(-90.0));
 
-        assert!(Angle::asin(1.001).to_radians().is_nan());
-        assert!(Angle::asin(-1.001).to_radians().is_nan());
+        assert!(Angle::asin(1.001).as_radians().is_nan());
+        assert!(Angle::asin(-1.001).as_radians().is_nan());
     }
 
     #[test]
@@ -237,8 +209,8 @@ mod tests {
         assert_eq!(Angle::acos(1.0), Angle::from_degrees(0.0));
         assert_eq!(Angle::acos(-1.0), Angle::from_degrees(180.0));
 
-        assert!(Angle::acos(1.001).to_radians().is_nan());
-        assert!(Angle::acos(-1.001).to_radians().is_nan());
+        assert!(Angle::acos(1.001).as_radians().is_nan());
+        assert!(Angle::acos(-1.001).as_radians().is_nan());
     }
 
     #[test]

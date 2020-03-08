@@ -11,26 +11,24 @@ pub mod date;
 
 /// Representation of a Julian Day
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct JD {
-    value: f64,
-}
+pub struct JD(f64);
 
 impl JD {
     /// Converts a `JD` into a bare `f64`
-    pub fn to_f64(&self) -> f64 {
-        self.value
+    pub fn as_f64(&self) -> f64 {
+        self.0
     }
 }
 
 impl From<f64> for JD {
     fn from(item: f64) -> Self {
         assert!(item >= 0.0, "Invalid JD value: {}", item);
-        JD { value: item }
+        JD(item)
     }
 }
 
 impl From<JD> for f64 {
     fn from(item: JD) -> Self {
-        item.value
+        item.0
     }
 }

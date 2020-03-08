@@ -67,8 +67,8 @@ impl Date {
     }
 
     pub fn from_jd(jd: super::JD) -> Date {
-        let z = (jd.to_f64() + 0.5).floor();
-        let f = (jd.to_f64() + 0.5) - z;
+        let z = (jd.as_f64() + 0.5).floor();
+        let f = (jd.as_f64() + 0.5) - z;
         let a = if z < 2299_161.0 {
             z
         } else {
@@ -96,7 +96,7 @@ impl Date {
         };
 
         Date {
-            cal: if jd.to_f64() >= 2299068.5 {
+            cal: if jd.as_f64() >= 2299068.5 {
                 Calendar::Gregorian
             } else {
                 Calendar::Julian
@@ -109,7 +109,7 @@ impl Date {
     }
 
     pub fn get_day_of_week(&self) -> DayOfWeek {
-        let jd = self.to_jd().to_f64().round() - 0.5; // Rounded to the nearest day at 0h UTC
+        let jd = self.to_jd().as_f64().round() - 0.5; // Rounded to the nearest day at 0h UTC
         let day_num = ((jd + 1.5) % 7.0).round() as i32;
         DayOfWeek::from(day_num)
     }
