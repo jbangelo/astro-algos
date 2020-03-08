@@ -1,7 +1,7 @@
 //! Conversions to and from calendar dates
 use super::JD;
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub enum Month {
     January = 1,
     February = 2,
@@ -17,7 +17,7 @@ pub enum Month {
     December = 12,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub enum DayOfWeek {
     Sunday = 0,
     Monday = 1,
@@ -28,13 +28,13 @@ pub enum DayOfWeek {
     Saturday = 6,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub enum Calendar {
     Julian,
     Gregorian,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub struct Date {
     cal: Calendar,
     year: i32,
@@ -183,9 +183,58 @@ impl From<JD> for Date {
     }
 }
 
+/// Calculates the date of Easter for a given year.
+///
+/// This function handles the differences in the Gregorian and Julian calendars, and uses 1583 as
+/// the first year of the Gregorian calendar. It correctly calculates the date of easter for any
+/// representable year.
+///
+/// #Note
+/// The returned date has the fractional day set to `0.0`
+pub fn find_easter(year: i32) -> Date {
+    if year >= 1583 {
+        let a = year % 19;
+        let b = year / 100;
+        let c = year % 100;
+        let d = b / 4;
+        let e = b % 4;
+        let f = (b + 4) / 25;
+        let g = (b - f + 1) / 3;
+        let h = (19*a + b - d - g + 15) % 30;
+        let i = c / 4;
+        let k = c % 4;
+        let l = (32 + 2*e + 2*i - h - k) % 7;
+        let m = (a + 11*h + 22*l) / 451;
+        let n = (h + l - 7*m + 114) / 31;
+        let p = (h + l - 7*m + 114) % 31;
+        Date {
+            cal: Calendar::Gregorian,
+            year,
+            month: n.into(),
+            day: (p + 1) as u8,
+            fraction: 0.0,
+        }
+    } else {
+        let a = year % 4;
+        let b = year % 7;
+        let c = year % 19;
+        let d = (19*c + 15) % 30;
+        let e = (2*a + 4*b - d + 34) % 7;
+        let f = (d + e + 114) / 31;
+        let g = (d + e + 114) % 31;
+        Date {
+            cal: Calendar::Julian,
+            year,
+            month: f.into(),
+            day: (g + 1) as u8,
+            fraction: 0.0,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{Calendar, Date, DayOfWeek, Month, JD};
+    use super::*;
 
     fn fraction_eq(frac1: f64, frac2: f64) -> bool {
         // 1 microsecond expressed in terms of fractions of a day, should be good enough for us
@@ -400,5 +449,22 @@ mod tests {
             .get_day_of_year(),
             113
         );
+    }
+
+    #[test]
+    fn easter() {
+        assert_eq!(find_easter(1818), Date { cal: Calendar::Gregorian, year: 1818, month: Month::March, day: 22, fraction: 0.0});
+        assert_eq!(find_easter(2285), Date { cal: Calendar::Gregorian, year: 2285, month: Month::March, day: 22, fraction: 0.0});
+        assert_eq!(find_easter(1886), Date { cal: Calendar::Gregorian, year: 1886, month: Month::April, day: 25, fraction: 0.0});
+        assert_eq!(find_easter(2038), Date { cal: Calendar::Gregorian, year: 2038, month: Month::April, day: 25, fraction: 0.0});
+        assert_eq!(find_easter(1991), Date { cal: Calendar::Gregorian, year: 1991, month: Month::March, day: 31, fraction: 0.0});
+        assert_eq!(find_easter(1992), Date { cal: Calendar::Gregorian, year: 1992, month: Month::April, day: 19, fraction: 0.0});
+        assert_eq!(find_easter(1993), Date { cal: Calendar::Gregorian, year: 1993, month: Month::April, day: 11, fraction: 0.0});
+        assert_eq!(find_easter(1954), Date { cal: Calendar::Gregorian, year: 1954, month: Month::April, day: 18, fraction: 0.0});
+        assert_eq!(find_easter(2000), Date { cal: Calendar::Gregorian, year: 2000, month: Month::April, day: 23, fraction: 0.0});
+        assert_eq!(find_easter(1818), Date { cal: Calendar::Gregorian, year: 1818, month: Month::March, day: 22, fraction: 0.0});
+        assert_eq!(find_easter(179), Date { cal: Calendar::Julian, year: 179, month: Month::April, day: 12, fraction: 0.0});
+        assert_eq!(find_easter(711), Date { cal: Calendar::Julian, year: 711, month: Month::April, day: 12, fraction: 0.0});
+        assert_eq!(find_easter(1243), Date { cal: Calendar::Julian, year: 1243, month: Month::April, day: 12, fraction: 0.0});
     }
 }
