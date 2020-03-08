@@ -22,8 +22,12 @@ impl Angle {
 
     /// Converts an angle represented as degrees, minutes, and second into an `Angle`.
     pub fn from_dms(angle: DegreesMinutesSeconds) -> Angle {
-        let deg = (angle.degrees as f64) + (angle.minutes as f64) / 60.0 + (angle.seconds / 3600.0);
-        Angle::from_degrees(deg)
+        angle.as_angle()
+    }
+
+    /// Converts an angle represented as hours, minutes, and second into an `Angle`.
+    pub fn from_hms(angle: HoursMinutesSeconds) -> Angle {
+        angle.as_angle()
     }
 
     /// Converts an `Angle` into a bare `f64` that is in units of radians
@@ -36,16 +40,14 @@ impl Angle {
         self.0.to_degrees()
     }
 
+    /// Converts an `Angle` into a `DegreesMinutesSeconds`
     pub fn as_dms(&self) -> DegreesMinutesSeconds {
-        let degrees = self.as_degrees();
-        let minutes = degrees.fract() * 60.0;
-        let seconds = minutes.fract() * 60.0;
+        DegreesMinutesSeconds::from_angle(self.clone())
+    }
 
-        DegreesMinutesSeconds {
-            degrees: degrees.trunc() as i32,
-            minutes: minutes.trunc() as i32,
-            seconds,
-        }
+    /// Converts an `Angle` into a `HoursMinutesSeconds`
+    pub fn as_hms(&self) -> HoursMinutesSeconds {
+        HoursMinutesSeconds::from_angle(self.clone())
     }
 
     /// Gets the sine of the angle.
@@ -163,24 +165,67 @@ pub struct DegreesMinutesSeconds {
 }
 
 impl DegreesMinutesSeconds {
-    pub fn from_angle(angle: Angle) -> DegreesMinutesSeconds {
-        angle.as_dms()
+    pub fn from_angle(angle: Angle) -> Self {
+        let degrees = angle.as_degrees();
+        let minutes = degrees.fract().abs() * 60.0;
+        let seconds = minutes.fract().abs() * 60.0;
+
+        Self {
+            degrees: degrees.trunc() as i32,
+            minutes: minutes.trunc() as i32,
+            seconds,
+        }
     }
 
     pub fn as_angle(&self) -> Angle {
-        Angle::from_dms(self.clone())
+        let deg = (self.degrees as f64) + (self.minutes as f64) / 60.0 + (self.seconds / 3600.0);
+        Angle::from_degrees(deg)
     }
 }
 
 impl std::fmt::Display for DegreesMinutesSeconds {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}°{}'{}\"", self.degrees, self.minutes, self.seconds)
+        write!(f, "{}°{}′{:.3}″", self.degrees, self.minutes, self.seconds)
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
+pub struct HoursMinutesSeconds {
+    pub hours: i32,
+    pub minutes: i32,
+    pub seconds: f64,
+}
+
+impl HoursMinutesSeconds {
+    pub fn from_angle(angle: Angle) -> Self {
+        let hours = angle.as_degrees() / 15.0;
+        let minutes = hours.fract().abs() * 60.0;
+        let seconds = minutes.fract().abs() * 60.0;
+
+        Self {
+            hours: hours.trunc() as i32,
+            minutes: minutes.trunc() as i32,
+            seconds,
+        }
+    }
+
+    pub fn as_angle(&self) -> Angle {
+        let deg =
+            ((self.hours as f64) + (self.minutes as f64) / 60.0 + (self.seconds / 3600.0)) * 15.0;
+        Angle::from_degrees(deg)
+    }
+}
+
+impl std::fmt::Display for HoursMinutesSeconds {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}ʰ{}ᵐ{:.3}ˢ", self.hours, self.minutes, self.seconds)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use assert_approx_eq::assert_approx_eq;
 
     #[test]
     fn from_degrees() {
@@ -191,18 +236,44 @@ mod tests {
 
     #[test]
     fn from_dms() {
-        assert_eq!(Angle::from_dms(DegreesMinutesSeconds{degrees:0, minutes:0, seconds:0.0}), Angle::from_degrees(0.0));
-        assert_eq!(Angle::from_dms(DegreesMinutesSeconds{degrees:1, minutes:0, seconds:0.0}), Angle::from_degrees(1.0));
         assert_eq!(
-            Angle::from_dms(DegreesMinutesSeconds{degrees:0, minutes:1, seconds:0.0}),
+            Angle::from_dms(DegreesMinutesSeconds {
+                degrees: 0,
+                minutes: 0,
+                seconds: 0.0
+            }),
+            Angle::from_degrees(0.0)
+        );
+        assert_eq!(
+            Angle::from_dms(DegreesMinutesSeconds {
+                degrees: 1,
+                minutes: 0,
+                seconds: 0.0
+            }),
+            Angle::from_degrees(1.0)
+        );
+        assert_eq!(
+            Angle::from_dms(DegreesMinutesSeconds {
+                degrees: 0,
+                minutes: 1,
+                seconds: 0.0
+            }),
             Angle::from_degrees(0.01666666666666666667)
         );
         assert_eq!(
-            Angle::from_dms(DegreesMinutesSeconds{degrees:0, minutes:0, seconds:1.0}),
+            Angle::from_dms(DegreesMinutesSeconds {
+                degrees: 0,
+                minutes: 0,
+                seconds: 1.0
+            }),
             Angle::from_degrees(0.00027777777777777778)
         );
         assert_eq!(
-            Angle::from_dms(DegreesMinutesSeconds{degrees:34, minutes:55, seconds:25.5436353}),
+            Angle::from_dms(DegreesMinutesSeconds {
+                degrees: 34,
+                minutes: 55,
+                seconds: 25.5436353
+            }),
             Angle::from_degrees(34.92376212091666666667)
         );
     }
@@ -255,19 +326,70 @@ mod tests {
 
     #[test]
     fn dms_conversions() {
-        assert_eq!(DegreesMinutesSeconds{degrees:0, minutes:0, seconds:0.0}.as_angle(), Angle::from_degrees(0.0));
-        assert_eq!(DegreesMinutesSeconds{degrees:1, minutes:0, seconds:0.0}.as_angle(), Angle::from_degrees(1.0));
         assert_eq!(
-            DegreesMinutesSeconds{degrees:0, minutes:1, seconds:0.0},
+            DegreesMinutesSeconds {
+                degrees: 0,
+                minutes: 0,
+                seconds: 0.0
+            }
+            .as_angle(),
+            Angle::from_degrees(0.0)
+        );
+        assert_eq!(
+            DegreesMinutesSeconds {
+                degrees: 1,
+                minutes: 0,
+                seconds: 0.0
+            }
+            .as_angle(),
+            Angle::from_degrees(1.0)
+        );
+        assert_eq!(
+            DegreesMinutesSeconds {
+                degrees: 0,
+                minutes: 1,
+                seconds: 0.0
+            },
             DegreesMinutesSeconds::from_angle(Angle::from_degrees(0.01666666666666666667))
         );
         assert_eq!(
-            DegreesMinutesSeconds{degrees:0, minutes:0, seconds:1.0},
+            DegreesMinutesSeconds {
+                degrees: 0,
+                minutes: 0,
+                seconds: 1.0
+            },
             DegreesMinutesSeconds::from_angle(Angle::from_degrees(0.00027777777777777778))
         );
         assert_eq!(
-            DegreesMinutesSeconds{degrees:34, minutes:55, seconds:25.543635299987955},
+            DegreesMinutesSeconds {
+                degrees: 34,
+                minutes: 55,
+                seconds: 25.543635299987955
+            },
             Angle::from_degrees(34.92376212091666666667).as_dms()
         );
+    }
+
+    #[test]
+    fn hms_conversions() {
+        assert_approx_eq!(
+            HoursMinutesSeconds {
+                hours: 7,
+                minutes: 45,
+                seconds: 18.946
+            }
+            .as_angle()
+            .as_degrees(),
+            116.328_942
+        );
+        let angle = HoursMinutesSeconds::from_angle(Angle::from_degrees(-295.647_867));
+        let hms = HoursMinutesSeconds {
+            hours: -19,
+            minutes: 42,
+            seconds: 35.488,
+        };
+        assert_eq!(angle.hours, hms.hours);
+        assert_eq!(angle.minutes, hms.minutes);
+        assert_approx_eq!(angle.seconds, hms.seconds, 1e-4);
     }
 }
