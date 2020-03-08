@@ -23,7 +23,7 @@ pub enum Planet {
 }
 
 impl Planet {
-    fn get_location(&self, t: &JD) -> HeliocentricSpherical {
+    pub fn get_location(&self, t: &JD) -> HeliocentricSpherical {
         let tau = (t.to_f64() - 2451_545.0) / 365_250.0;
         let (l_terms, b_terms, r_terms) = match self {
             Planet::Mercury => (mercury::LTERMS, mercury::BTERMS, mercury::RTERMS),
