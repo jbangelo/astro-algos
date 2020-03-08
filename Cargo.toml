@@ -8,4 +8,9 @@ edition = "2018"
 
 [dev-dependencies]
 assert_approx_eq = "1.1.0"
+criterion = "0.3"
+
+[[bench]]
+name = "planet_benchmark"
+harness = false
 
