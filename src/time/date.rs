@@ -1,6 +1,8 @@
 //! Conversions to and from calendar dates
 use crate::time::JD;
 
+use core::fmt::{self, Display};
+
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub enum Calendar {
     Julian,
@@ -96,9 +98,9 @@ impl Date {
             (e - 13.0) as i32
         };
         let year = if month > 2 {
-            (c - 4716.0)
+            c - 4716.0
         } else {
-            (c - 4715.0)
+            c - 4715.0
         };
 
         Date {
@@ -133,6 +135,12 @@ impl Date {
         let d = self.day.0 as u16;
 
         (275 * m / 9) - k * ((m + 9) / 12) + d - 30
+    }
+}
+
+impl Display for Date {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?} {}, {}", self.month, self.day.0, self.year.0)
     }
 }
 
@@ -174,6 +182,12 @@ impl From<i32> for DayOfWeek {
                 DayOfWeek::Sunday
             }
         }
+    }
+}
+
+impl From<i32> for Year {
+    fn from(item: i32) -> Self {
+        Self(item)
     }
 }
 
