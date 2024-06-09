@@ -265,6 +265,45 @@ pub fn find_julian_easter(year: Year) -> Date {
     }
 }
 
+pub fn find_gregorian_passover(greg_year: Year) -> Date {
+    let x = greg_year.0;
+    let c = x / 100;
+    let s = (3 * c - 5) / 4; // TODO: in Julian calendar use S = 0
+    let _year = x + 3760; // Represents the year in the Jewish Calenday
+    let a = (12 * x + 12) % 19;
+    let b = x % 4;
+    let q = -1.904_412_361_576 + 1.554_241_796_621 * a as f64 + 0.25 * b as f64
+        - 0.003_177_794_022 * x as f64
+        + s as f64;
+    let q_int = q.trunc() as i32;
+    let j = (q_int + 3 * x + 5 * b + 2 - s) % 7;
+    let r = q - q.trunc();
+
+    let d = if j == 2 || j == 4 || j == 6 {
+        q_int + 23
+    } else if j == 1 && a > 6 && r > 0.632_870_370 {
+        q_int + 24
+    } else if j == 0 && a > 11 && r >= 0.897_723_765 {
+        q_int + 23
+    } else {
+        q_int + 22
+    };
+
+    let (month, day) = if d > 31 {
+        (Month::April, DayOfMonth((d - 31) as u8))
+    } else {
+        (Month::March, DayOfMonth(d as u8))
+    };
+
+    Date {
+        cal: Calendar::Gregorian,
+        year: greg_year,
+        month,
+        day,
+        fraction: 0.0,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -643,6 +682,53 @@ mod tests {
                 year: Year(2025),
                 month: Month::April,
                 day: DayOfMonth(20),
+                fraction: 0.0
+            }
+        );
+    }
+
+    #[test]
+    fn passover() {
+        assert_eq!(
+            find_gregorian_passover(Year(1990)),
+            Date {
+                cal: Calendar::Gregorian,
+                year: Year(1990),
+                month: Month::April,
+                day: DayOfMonth(10),
+                fraction: 0.0
+            }
+        );
+
+        assert_eq!(
+            find_gregorian_passover(Year(2023)),
+            Date {
+                cal: Calendar::Gregorian,
+                year: Year(2023),
+                month: Month::April,
+                day: DayOfMonth(6),
+                fraction: 0.0
+            }
+        );
+
+        assert_eq!(
+            find_gregorian_passover(Year(2024)),
+            Date {
+                cal: Calendar::Gregorian,
+                year: Year(2024),
+                month: Month::April,
+                day: DayOfMonth(23),
+                fraction: 0.0
+            }
+        );
+
+        assert_eq!(
+            find_gregorian_passover(Year(2025)),
+            Date {
+                cal: Calendar::Gregorian,
+                year: Year(2025),
+                month: Month::April,
+                day: DayOfMonth(13),
                 fraction: 0.0
             }
         );
