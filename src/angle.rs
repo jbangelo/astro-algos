@@ -113,6 +113,18 @@ impl Angle {
     }
 }
 
+impl From<DegreesMinutesSeconds> for Angle {
+    fn from(value: DegreesMinutesSeconds) -> Self {
+        value.as_angle()
+    }
+}
+
+impl From<HoursMinutesSeconds> for Angle {
+    fn from(value: HoursMinutesSeconds) -> Self {
+        value.as_angle()
+    }
+}
+
 impl std::ops::Add for Angle {
     type Output = Self;
 
@@ -183,6 +195,12 @@ impl DegreesMinutesSeconds {
     }
 }
 
+impl From<Angle> for DegreesMinutesSeconds {
+    fn from(value: Angle) -> Self {
+        value.as_dms()
+    }
+}
+
 impl std::fmt::Display for DegreesMinutesSeconds {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}°{}′{:.3}″", self.degrees, self.minutes, self.seconds)
@@ -213,6 +231,12 @@ impl HoursMinutesSeconds {
         let deg =
             ((self.hours as f64) + (self.minutes as f64) / 60.0 + (self.seconds / 3600.0)) * 15.0;
         Angle::from_degrees(deg)
+    }
+}
+
+impl From<Angle> for HoursMinutesSeconds {
+    fn from(value: Angle) -> Self {
+        value.as_hms()
     }
 }
 
