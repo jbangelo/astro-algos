@@ -20,16 +20,18 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v7
 
+      - uses: extractions/setup-just@v4
+
       - name: Set up Rust toolchain
         run: |
             rustup update stable
             rustc --version
 
       - name: Check code formatting
-        run: cargo fmt --all -- --check
+        run: just fmt-check
 
       - name: Run linter (Clippy)
-        run: cargo clippy --all-targets --all-features -- -D warnings
+        run: just clippy
 
       - name: Run test suite
-        run: cargo test --all-features --workspace
+        run: just test
