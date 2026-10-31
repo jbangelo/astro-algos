@@ -250,15 +250,37 @@ impl std::fmt::Display for HoursMinutesSeconds {
 mod tests {
     use super::*;
     use assert_approx_eq::assert_approx_eq;
+    use proptest::prelude::*;
 
-    #[test]
-    fn from_degrees() {
-        assert_eq!(Angle::from_degrees(0.0), Angle(0.0));
-        assert_eq!(Angle::from_degrees(1.0), Angle(0.017_453_292_519_943_295));
-        assert_eq!(
-            Angle::from_degrees(25.4345),
-            Angle(0.443_915_768_598_497_74)
-        );
+    proptest! {
+        #[test]
+        fn from_degrees(x in proptest::num::f64::NORMAL) {
+            assert_eq!(Angle::from_degrees(x).0, x.to_radians());
+        }
+
+        #[test]
+        fn arcsin(x in proptest::num::f64::NORMAL) {
+            prop_assume!(x.asin().is_normal());
+            assert_eq!(Angle::asin(x).0, x.asin());
+        }
+
+        #[test]
+        fn arccos(x in proptest::num::f64::NORMAL) {
+            prop_assume!(x.acos().is_normal());
+            assert_eq!(Angle::acos(x).0, x.acos());
+        }
+
+        #[test]
+        fn arctan(x in proptest::num::f64::NORMAL) {
+            prop_assume!(x.atan().is_normal());
+            assert_eq!(Angle::atan(x).0, x.atan());
+        }
+
+        #[test]
+        fn arctan2(x in proptest::num::f64::NORMAL, y in proptest::num::f64::NORMAL) {
+            prop_assume!(x.atan2(y).is_normal());
+            assert_eq!(Angle::atan2(x,y).0, x.atan2(y));
+        }
     }
 
     #[test]
@@ -303,49 +325,6 @@ mod tests {
             }),
             Angle::from_degrees(34.923_762_120_916_66)
         );
-    }
-
-    #[test]
-    fn arcsin() {
-        assert_eq!(Angle::asin(0.0), Angle::from_degrees(0.0));
-        assert_eq!(Angle::asin(1.0), Angle::from_degrees(90.0));
-        assert_eq!(Angle::asin(-1.0), Angle::from_degrees(-90.0));
-
-        assert!(Angle::asin(1.001).as_radians().is_nan());
-        assert!(Angle::asin(-1.001).as_radians().is_nan());
-    }
-
-    #[test]
-    fn arccos() {
-        assert_eq!(Angle::acos(0.0), Angle::from_degrees(90.0));
-        assert_eq!(Angle::acos(1.0), Angle::from_degrees(0.0));
-        assert_eq!(Angle::acos(-1.0), Angle::from_degrees(180.0));
-
-        assert!(Angle::acos(1.001).as_radians().is_nan());
-        assert!(Angle::acos(-1.001).as_radians().is_nan());
-    }
-
-    #[test]
-    fn arctan() {
-        assert_eq!(Angle::atan(0.0), Angle::from_degrees(0.0));
-        assert_eq!(Angle::atan(1.0), Angle::from_degrees(45.0));
-        assert_eq!(Angle::atan(-1.0), Angle::from_degrees(-45.0));
-
-        assert_eq!(Angle::atan(f64::MAX), Angle::from_degrees(90.0));
-        assert_eq!(Angle::atan(f64::MIN), Angle::from_degrees(-90.0));
-    }
-
-    #[test]
-    fn arctan2() {
-        assert_eq!(Angle::atan2(0.0, 0.0), Angle::from_degrees(0.0));
-        assert_eq!(Angle::atan2(0.0, 1.0), Angle::from_degrees(0.0));
-        assert_eq!(Angle::atan2(1.0, 0.0), Angle::from_degrees(90.0));
-        assert_eq!(Angle::atan2(1.0, 1.0), Angle::from_degrees(45.0));
-        assert_eq!(Angle::atan2(0.0, -1.0), Angle::from_degrees(180.0));
-        assert_eq!(Angle::atan2(-1.0, 0.0), Angle::from_degrees(-90.0));
-        assert_eq!(Angle::atan2(-1.0, -1.0), Angle::from_degrees(-135.0));
-
-        assert_eq!(Angle::atan2(f64::MAX, f64::MAX), Angle::from_degrees(45.0));
     }
 
     #[test]
