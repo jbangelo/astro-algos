@@ -33,7 +33,7 @@ impl Planet {
     /// the accuracy of the positions for the inner four planets degrade. Finally past +/- 6000 years
     /// from the year 2000 the accuracy of Uranus and Neptune's positions start to degrade.
     pub fn get_location(&self, t: &JD) -> HeliocentricSpherical {
-        let tau = (t.as_f64() - 2451_545.0) / 365_250.0;
+        let tau = (t.as_f64() - 2_451_545.0) / 365_250.0;
         let (l_terms, b_terms, r_terms) = match self {
             Planet::Mercury => (mercury::LTERMS, mercury::BTERMS, mercury::RTERMS),
             Planet::Venus => (venus::LTERMS, venus::BTERMS, venus::RTERMS),
@@ -66,7 +66,7 @@ fn sum_terms(terms: &[&[(f64, f64, f64)]], tau: f64) -> f64 {
         .map(|(power_terms, power)| {
             power_terms
                 .iter()
-                .map(|(a, b, c)| a * (b + c * tau).cos() * tau.powi(power as i32))
+                .map(|(a, b, c)| a * (b + c * tau).cos() * tau.powi(power))
                 .sum::<f64>()
         })
         .sum::<f64>()

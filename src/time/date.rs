@@ -58,7 +58,7 @@ impl Date {
             _ => (self.year.0 as f64, self.month as i32),
         };
 
-        let a = (y as f64 / 100.0).floor();
+        let a = (y / 100.0).floor();
         let b = match self.cal {
             Calendar::Julian => 0.0,
             Calendar::Gregorian => 2.0 - a + (a / 4.0).floor(),
@@ -77,10 +77,10 @@ impl Date {
     pub fn from_jd(jd: super::JD) -> Date {
         let z = (jd.as_f64() + 0.5).floor();
         let f = (jd.as_f64() + 0.5) - z;
-        let a = if z < 2299_161.0 {
+        let a = if z < 2_299_161.0 {
             z
         } else {
-            let alpha = ((z - 1867_216.25) / 36524.25).floor();
+            let alpha = ((z - 1_867_216.25) / 36524.25).floor();
             z + 1.0 + alpha - (alpha / 4.0).floor()
         };
 
@@ -122,7 +122,7 @@ impl Date {
         let leap_year = if let Calendar::Julian = self.cal {
             (self.year.0 % 4) == 0
         } else {
-            ((self.year.0 % 4) == 0) && !((self.year.0 % 400) == 0)
+            ((self.year.0 % 4) == 0) && ((self.year.0 % 400) != 0)
         };
 
         let k = if leap_year { 1 } else { 2 };
@@ -155,10 +155,7 @@ impl From<i32> for Month {
             10 => Month::October,
             11 => Month::November,
             12 => Month::December,
-            _ => {
-                assert!(false, "Invalid month number: {}", item);
-                Month::January
-            }
+            _ => panic!("Invalid month number: {}", item),
         }
     }
 }
@@ -173,10 +170,7 @@ impl From<i32> for DayOfWeek {
             4 => DayOfWeek::Thursday,
             5 => DayOfWeek::Friday,
             6 => DayOfWeek::Saturday,
-            _ => {
-                assert!(false, "Invalid day number: {}", item);
-                DayOfWeek::Sunday
-            }
+            _ => panic!("Invalid day number: {}", item),
         }
     }
 }

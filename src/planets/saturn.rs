@@ -1,3 +1,5 @@
+#![allow(clippy::approx_constant)]
+
 pub const LTERMS: [&[(f64, f64, f64)]; 6] = [
     &[
         (0.87401354025, 0.0, 0.0),

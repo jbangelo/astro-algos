@@ -42,12 +42,12 @@ impl Angle {
 
     /// Converts an `Angle` into a `DegreesMinutesSeconds`
     pub fn as_dms(&self) -> DegreesMinutesSeconds {
-        DegreesMinutesSeconds::from_angle(self.clone())
+        DegreesMinutesSeconds::from_angle(*self)
     }
 
     /// Converts an `Angle` into a `HoursMinutesSeconds`
     pub fn as_hms(&self) -> HoursMinutesSeconds {
-        HoursMinutesSeconds::from_angle(self.clone())
+        HoursMinutesSeconds::from_angle(*self)
     }
 
     /// Gets the sine of the angle.

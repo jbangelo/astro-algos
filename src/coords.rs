@@ -9,12 +9,20 @@ pub trait Equinox {
 
 pub struct J2000 {}
 impl Equinox for J2000 {
-    const OBLIQUITY: f64 = 0.40909280402840346503;
+    #[expect(
+        clippy::excessive_precision,
+        reason = "Exact value used even though it exceeds precision"
+    )]
+    const OBLIQUITY: f64 = 0.409_092_804_028_403_465_03;
 }
 
 pub struct B1950 {}
 impl Equinox for B1950 {
-    const OBLIQUITY: f64 = 0.40920621203253955258;
+    #[expect(
+        clippy::excessive_precision,
+        reason = "Exact value used even though it exceeds precision"
+    )]
+    const OBLIQUITY: f64 = 0.409_206_212_032_539_552_58;
 }
 
 /// Spherical coordinates centered on the sun, relative to the J2000.0 epoch.
