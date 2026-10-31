@@ -392,7 +392,7 @@ mod tests {
     #[test]
     fn jd_to_date() {
         // Example 7.c, page 64
-        let d1 = Date::from_jd(JD::from(2436_116.31));
+        let d1 = Date::from_jd(JD::from(2_436_116.31));
         assert_eq!(d1.cal, Calendar::Gregorian);
         assert_eq!(d1.year, Year(1957));
         assert_eq!(d1.month, Month::October);
@@ -400,7 +400,7 @@ mod tests {
         assert!(fraction_eq(d1.fraction, 0.81));
 
         // Exercise, page 64
-        let d1 = Date::from_jd(JD::from(1842_713.0));
+        let d1 = Date::from_jd(JD::from(1_842_713.0));
         assert_eq!(d1.cal, Calendar::Julian);
         assert_eq!(d1.year, Year(333));
         assert_eq!(d1.month, Month::January);
@@ -408,7 +408,7 @@ mod tests {
         assert!(fraction_eq(d1.fraction, 0.5));
 
         // Exercise, page 64
-        let d1 = Date::from_jd(JD::from(1507_900.13));
+        let d1 = Date::from_jd(JD::from(1_507_900.13));
         assert_eq!(d1.cal, Calendar::Julian);
         assert_eq!(d1.year, Year(-584));
         assert_eq!(d1.month, Month::May);

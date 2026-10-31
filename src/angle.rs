@@ -254,8 +254,11 @@ mod tests {
     #[test]
     fn from_degrees() {
         assert_eq!(Angle::from_degrees(0.0), Angle(0.0));
-        assert_eq!(Angle::from_degrees(1.0), Angle(0.01745329251994329577));
-        assert_eq!(Angle::from_degrees(25.4345), Angle(0.44391576859849775626));
+        assert_eq!(Angle::from_degrees(1.0), Angle(0.017_453_292_519_943_295));
+        assert_eq!(
+            Angle::from_degrees(25.4345),
+            Angle(0.443_915_768_598_497_74)
+        );
     }
 
     #[test]
@@ -282,7 +285,7 @@ mod tests {
                 minutes: 1,
                 seconds: 0.0
             }),
-            Angle::from_degrees(0.01666666666666666667)
+            Angle::from_degrees(0.016_666_666_666_666_666)
         );
         assert_eq!(
             Angle::from_dms(DegreesMinutesSeconds {
@@ -290,7 +293,7 @@ mod tests {
                 minutes: 0,
                 seconds: 1.0
             }),
-            Angle::from_degrees(0.00027777777777777778)
+            Angle::from_degrees(0.000_277_777_777_777_777_8)
         );
         assert_eq!(
             Angle::from_dms(DegreesMinutesSeconds {
@@ -298,7 +301,7 @@ mod tests {
                 minutes: 55,
                 seconds: 25.5436353
             }),
-            Angle::from_degrees(34.92376212091666666667)
+            Angle::from_degrees(34.923_762_120_916_66)
         );
     }
 
@@ -328,8 +331,8 @@ mod tests {
         assert_eq!(Angle::atan(1.0), Angle::from_degrees(45.0));
         assert_eq!(Angle::atan(-1.0), Angle::from_degrees(-45.0));
 
-        assert_eq!(Angle::atan(std::f64::MAX), Angle::from_degrees(90.0));
-        assert_eq!(Angle::atan(std::f64::MIN), Angle::from_degrees(-90.0));
+        assert_eq!(Angle::atan(f64::MAX), Angle::from_degrees(90.0));
+        assert_eq!(Angle::atan(f64::MIN), Angle::from_degrees(-90.0));
     }
 
     #[test]
@@ -342,10 +345,7 @@ mod tests {
         assert_eq!(Angle::atan2(-1.0, 0.0), Angle::from_degrees(-90.0));
         assert_eq!(Angle::atan2(-1.0, -1.0), Angle::from_degrees(-135.0));
 
-        assert_eq!(
-            Angle::atan2(std::f64::MAX, std::f64::MAX),
-            Angle::from_degrees(45.0)
-        );
+        assert_eq!(Angle::atan2(f64::MAX, f64::MAX), Angle::from_degrees(45.0));
     }
 
     #[test]
@@ -374,7 +374,7 @@ mod tests {
                 minutes: 1,
                 seconds: 0.0
             },
-            DegreesMinutesSeconds::from_angle(Angle::from_degrees(0.01666666666666666667))
+            DegreesMinutesSeconds::from_angle(Angle::from_degrees(0.016_666_666_666_666_666))
         );
         assert_eq!(
             DegreesMinutesSeconds {
@@ -382,7 +382,7 @@ mod tests {
                 minutes: 0,
                 seconds: 1.0
             },
-            DegreesMinutesSeconds::from_angle(Angle::from_degrees(0.00027777777777777778))
+            DegreesMinutesSeconds::from_angle(Angle::from_degrees(0.000_277_777_777_777_777_8))
         );
         assert_eq!(
             DegreesMinutesSeconds {
@@ -390,7 +390,7 @@ mod tests {
                 minutes: 55,
                 seconds: 25.543635299987955
             },
-            Angle::from_degrees(34.92376212091666666667).as_dms()
+            Angle::from_degrees(34.923_762_120_916_66).as_dms()
         );
     }
 
