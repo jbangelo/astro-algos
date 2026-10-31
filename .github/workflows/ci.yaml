@@ -1,0 +1,33 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+env:
+  CARGO_TERM_COLOR: always
+  # Disable incremental compilation for CI builds to optimize cache sizing
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v7
+
+      - name: Set up Rust toolchain
+        run: rustup update stable
+
+      - name: Check code formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run linter (Clippy)
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Run test suite
+        run: cargo test --all-features --workspace
